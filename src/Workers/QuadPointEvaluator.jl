@@ -43,19 +43,22 @@ function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Uni
     return QuadPointEvaluator(ArrayOfVectorViews(indices, data, LinearIndices((ncells,))), qe_type)
 end
 
+function QuadPointEvaluator{VT}(domainbuffer::DomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
+    domain_buffers = Dict{String,DomainBuffer}("_" => domainbuffer,)
+    return QuadPointEvaluator{VT}(domain_buffers, qe_type)
+end
+
 function QuadPointEvaluator{VT}(domainbuffers::DomainBuffers, qe_type::Union{Symbol, Function}) where {VT}
     ncells = getncells(get_dofhandler(first(values(domainbuffers))).grid)
-    nqps = Vector{Int}(undef, ncells)
-    nqp_total = 0
+    nqps = zeros(Int, ncells)
     for (_, db) in domainbuffers
         cv = get_values(get_base(get_itembuffer(db)))
         @assert cv isa CellValues # For now, only CellValues supported
         nqp = getnquadpoints(cv)
         set = getset(db)
         map(i -> (nqps[i] = nqp), set)
-        nqp_total += nqp * length(set)
     end
-
+    nqp_total = sum(nqps)
     data = Vector{VT}(undef, nqp_total)
     indices = Vector{Int}(undef, ncells + 1)
     indices[1] = 1
