@@ -44,7 +44,7 @@ function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Uni
 end
 
 function QuadPointEvaluator{VT}(domainbuffer::DomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
-    domain_buffers = Dict{String,DomainBuffer}("_" => domainbuffer,)
+    domain_buffers = Dict{String,DomainBuffer}("_" => domainbuffer)
     return QuadPointEvaluator{VT}(domain_buffers, qe_type)
 end
 
@@ -53,8 +53,15 @@ function QuadPointEvaluator{VT}(domainbuffers::DomainBuffers, qe_type::Union{Sym
     nqps = zeros(Int, ncells)
     for (_, db) in domainbuffers
         cv = get_values(get_base(get_itembuffer(db)))
-        @assert cv isa CellValues # For now, only CellValues supported
-        nqp = getnquadpoints(cv)
+        nqp = if cv isa Ferrite.AbstractCellValues
+            getnquadpoints(cv)
+        elseif cv isa NamedTuple
+            tmp = getnquadpoints.(values(cv))
+            @assert allequal(tmp)
+            tmp[1]
+        else
+            error("Only CellValues are supported")
+        end
         set = getset(db)
         map(i -> (nqps[i] = nqp), set)
     end
