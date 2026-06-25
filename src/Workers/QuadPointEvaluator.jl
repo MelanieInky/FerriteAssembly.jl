@@ -43,8 +43,8 @@ function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Uni
     return QuadPointEvaluator(ArrayOfVectorViews(indices, data, LinearIndices((ncells,))), qe_type)
 end
 
-function QuadPointEvaluator{VT}(domainbuffer::DomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
-    domain_buffers = Dict{String,DomainBuffer}("_" => domainbuffer)
+function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
+    domain_buffers = Dict("_" => domainbuffer)
     return QuadPointEvaluator{VT}(domain_buffers, qe_type)
 end
 
