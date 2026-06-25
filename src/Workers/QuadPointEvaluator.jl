@@ -26,22 +26,6 @@ struct QuadPointEvaluator{VT, QEType}
 end
 QuadPointEvaluator(data::ArrayOfVectorViews, qe_type::Symbol) = QuadPointEvaluator(data, Val(qe_type))
 
-function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
-    cv = get_values(get_base(get_itembuffer(domainbuffer)))
-    nqp = if cv isa Ferrite.AbstractCellValues
-        getnquadpoints(cv)
-    elseif cv isa NamedTuple
-        tmp = getnquadpoints.(values(cv))
-        @assert allequal(tmp)
-        tmp[1]
-    else
-        error("Only CellValues are supported")
-    end
-    ncells = getncells(get_dofhandler(domainbuffer).grid)
-    data = Vector{VT}(undef, nqp * ncells)
-    indices = [1 + i * nqp for i in 0:ncells]
-    return QuadPointEvaluator(ArrayOfVectorViews(indices, data, LinearIndices((ncells,))), qe_type)
-end
 
 function QuadPointEvaluator{VT}(domainbuffer::AbstractDomainBuffer, qe_type::Union{Symbol, Function}) where {VT}
     domain_buffers = Dict("_" => domainbuffer)
